@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Brain Tumor Classifier</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+</head>
+<body>
+  <h2>Upload an MRI Image</h2>
+  <input type="file" id="imageUpload" accept="image/*" />
+  <br><br>
+  <img id="preview" width="180" height="180" />
+  <p id="result"></p>
+
+  <script>
+    let model;
+
+    async function loadModel() {
+      model = await tf.loadLayersModel('tfjs_model/model.json');
+      console.log("Model loaded");
+    }
+
+    function preprocessImage(imgElement) {
+      return tf.tidy(() => {
+        return tf.browser
+          .fromPixels(imgElement)
+          .resizeNearestNeighbor([180, 180])
+          .toFloat()
+          .div(255)
+          .expandDims();
+      });
+    }
+
+    async function predictImage(imgElement) {
+      const tensor = preprocessImage(imgElement);
+      const prediction = model.predict(tensor);
+      const result = await prediction.data();
+      const predictedClass = result.indexOf(Math.max(...result));
+      document.getElementById("result").innerText = predictedClass === 1 ? "Tumor Detected" : "No Tumor Detected";
+    }
+
+    document.getElementById("imageUpload").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imgElement = document.getElementById("preview");
+        imgElement.src = event.target.result;
+        imgElement.onload = () => predictImage(imgElement);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    loadModel();
+  </script>
+</body>
+</html>

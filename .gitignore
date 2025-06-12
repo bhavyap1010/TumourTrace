@@ -1,0 +1,15 @@
+
+venv/
+venv39/
+
+.env
+*.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# MacOS system files
+.DS_Store
+
+brain-tumour-dataset/
+*.jpg
